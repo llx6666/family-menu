@@ -3,11 +3,21 @@
     <!-- PIN 门 -->
     <div v-if="!unlocked" class="card pin-card">
       <div class="label">管理入口（改菜品 / 改家人名单）</div>
-      <van-field v-model="pin" type="password" placeholder="管理 PIN（默认 8888，部署时改）" />
+      <van-field v-model="pin" type="password" placeholder="管理 PIN（默认 8888）" />
       <van-button type="primary" block round style="margin-top:10px" :loading="checking" @click="unlock">进入</van-button>
+      <div class="pin-tip">首次输入后本机会自动记住，不用每次都填</div>
     </div>
 
     <template v-else>
+      <div class="card">
+        <div class="label">身份锁定</div>
+        <div class="lock-line">
+          <span>{{ store.myName ? '当前身份：' + store.myName + ' 🔒' : '本机未设置身份' }}</span>
+          <van-button size="small" plain type="warning" @click="resetMe">重置身份</van-button>
+        </div>
+        <div class="tip">换人用这台手机时才需要重置；重置后回「点菜」页重新选人。</div>
+      </div>
+
       <div class="card">
         <div class="label">家人名单（顿号/逗号分隔）</div>
         <van-field v-model="membersText" placeholder="爸爸、妈妈、娃" />
@@ -39,7 +49,7 @@ import { ref, onMounted } from 'vue'
 import { showToast, showSuccessToast } from 'vant'
 import { store } from '../store'
 
-const pin = ref('')
+const pin = ref(localStorage.getItem('fmenu-pin') || '')
 const unlocked = ref(false)
 const checking = ref(false)
 const saving = ref(false)
@@ -52,17 +62,30 @@ onMounted(async () => {
     dishes.value = JSON.parse(JSON.stringify(store.doc.dishes))
     membersText.value = store.doc.members.join('、')
   }
+  // 自动解锁：本机记住过 PIN 就静默验证一次
+  if (pin.value && !unlocked.value) {
+    try {
+      await store.saveAdmin({ pin: pin.value })
+      unlocked.value = true
+    } catch (e) { /* 记住的 PIN 已失效，留在门口 */ }
+  }
 })
 
 async function unlock() {
   checking.value = true
   try {
     await store.saveAdmin({ pin: pin.value }) // 空操作，只验 PIN
+    localStorage.setItem('fmenu-pin', pin.value)   // 记住，免得下次再输
     unlocked.value = true
     showSuccessToast('欢迎回来')
   } catch (e) {
     showToast(e.message)
   } finally { checking.value = false }
+}
+
+function resetMe() {
+  store.resetMe()
+  showToast('已重置，去「点菜」页重新选人吧')
 }
 
 function add() {
@@ -94,6 +117,9 @@ async function saveMembers() {
 .card { background: #fff; border-radius: 12px; padding: 12px; margin-top: 10px; }
 .pin-card { max-width: 420px; }
 .label { font-size: 13px; color: #969799; margin-bottom: 8px; }
+.pin-tip { font-size: 12px; color: #c8c9cc; margin-top: 8px; text-align: center; }
+.lock-line { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.tip { font-size: 12px; color: #c8c9cc; margin-top: 8px; }
 .dish-edit { border: 1px solid #f0f0f0; border-radius: 8px; padding: 6px; margin-bottom: 10px; }
 .dish-ops { display: flex; justify-content: flex-end; padding-top: 4px; }
 </style>

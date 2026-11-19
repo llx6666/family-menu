@@ -12,10 +12,32 @@ export const store = reactive({
   loading: false,
   error: '',
   myName: localStorage.getItem('fmenu-me') || '',
+  locked: !!localStorage.getItem('fmenu-lock'),
+  cart: [],       // 本地购物车（菜品 id），提交后清空
 
   setMe(name) {
+    if (this.locked) return          // 已锁定，禁止切换
     this.myName = name
     localStorage.setItem('fmenu-me', name)
+  },
+
+  confirmMe() {                       // 确认身份 → 锁定
+    if (!this.myName) return
+    localStorage.setItem('fmenu-lock', this.myName)
+    this.locked = true
+  },
+
+  resetMe() {                         // 仅管理页调用：重置身份
+    this.myName = ''
+    this.locked = false
+    this.cart = []
+    localStorage.removeItem('fmenu-me')
+    localStorage.removeItem('fmenu-lock')
+  },
+
+  toggleCart(id) {
+    const i = this.cart.indexOf(id)
+    i >= 0 ? this.cart.splice(i, 1) : this.cart.push(id)
   },
 
   async refresh() {

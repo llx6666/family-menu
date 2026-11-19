@@ -1,8 +1,11 @@
 <template>
   <div class="app">
     <div class="head">
-      <div class="title">🏠 家庭点菜</div>
-      <div class="sub">{{ store.myName ? store.myName + ' · ' : '' }}{{ dateStr }}</div>
+      <div>
+        <div class="title">🏠 家庭点菜</div>
+        <div class="sub">{{ store.myName ? store.myName + ' · ' : '' }}{{ dateStr }}<span v-if="store.locked"> 🔒</span></div>
+      </div>
+      <div class="meal">今晚吃啥</div>
     </div>
     <router-view />
     <van-tabbar route safe-area-inset-bottom>
@@ -23,9 +26,19 @@ onMounted(() => { if (!store.doc) store.refresh() })
 </script>
 
 <style>
-body { margin: 0; background: #f7f8fa; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+:root {
+  --van-primary-color: #ff5a3c;
+  --van-tabbar-item-active-color: #ff5a3c;
+}
+body { margin: 0; background: #fbf6f2; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
 .app { padding-bottom: 66px; max-width: 640px; margin: 0 auto; }
-.head { padding: 14px 16px 8px; display: flex; align-items: baseline; justify-content: space-between; }
-.title { font-size: 20px; font-weight: 700; }
-.sub { color: #969799; font-size: 13px; }
+.head { padding: 16px 18px 20px; display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, #ff8f43, #ff5a3c);
+  border-radius: 0 0 22px 22px; box-shadow: 0 4px 14px rgba(255, 90, 60, .25); }
+.title { font-size: 20px; font-weight: 700; color: #fff; }
+.sub { color: rgba(255, 255, 255, .88); font-size: 12px; margin-top: 3px; }
+.meal { background: rgba(255, 255, 255, .2); border-radius: 999px; color: #fff; font-size: 12px; padding: 5px 12px; }
+
+/* 全局卡片质感 */
+.page .card { box-shadow: 0 2px 10px rgba(0, 0, 0, .05); }
 </style>
