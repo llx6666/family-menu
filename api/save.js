@@ -19,13 +19,13 @@ module.exports = async (req, res) => {
     }
     const r = client()
     const raw = await r.get('fmenu')
-    const doc = JSON.parse(raw || '{}')
+    const doc = (raw == null || raw === '') ? { members: [], dishes: [], picks: {} } : (typeof raw === 'string' ? JSON.parse(raw) : raw)
     if (Array.isArray(body.dishes)) doc.dishes = body.dishes
     if (Array.isArray(body.members)) doc.members = body.members
     if (body.clearDate) {
       if (doc.picks) delete doc.picks[body.clearDate]
     }
-    await r.set('fmenu', JSON.stringify(doc))
+    await r.set('fmenu', doc)
     res.status(200).json({ ok: true })
   } catch (e) {
     res.status(500).json({ error: String(e && e.message || e) })

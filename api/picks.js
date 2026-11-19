@@ -19,11 +19,11 @@ module.exports = async (req, res) => {
     }
     const r = client()
     const raw = await r.get('fmenu')
-    const doc = JSON.parse(raw || '{}')
+    const doc = (raw == null || raw === '') ? { members: [], dishes: [], picks: {} } : (typeof raw === 'string' ? JSON.parse(raw) : raw)
     if (!doc.picks) doc.picks = {}
     if (!doc.picks[date]) doc.picks[date] = {}
     doc.picks[date][member] = dishIds
-    await r.set('fmenu', JSON.stringify(doc))
+    await r.set('fmenu', doc)
     res.status(200).json({ ok: true, saved: dishIds.length })
   } catch (e) {
     res.status(500).json({ error: String(e && e.message || e) })

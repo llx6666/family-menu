@@ -35,9 +35,10 @@ module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   try {
     const r = client()
-    let doc = await r.json('fmenu')
+    const raw = await r.get('fmenu')
+    let doc = (raw == null || raw === '') ? null : (typeof raw === 'string' ? JSON.parse(raw) : raw)
     if (!doc) {
-      await r.set('fmenu', JSON.stringify(SEED))
+      await r.set('fmenu', SEED)
       doc = SEED
     }
     res.status(200).json(doc)
